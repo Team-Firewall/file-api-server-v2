@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-
+use actix_easy_multipart::MultipartForm;
+use actix_easy_multipart::tempfile::Tempfile;
+use actix_easy_multipart::text::Text;
 use actix_multipart::Multipart;
 use actix_files::Files;
 use actix_web::*;
@@ -19,7 +21,10 @@ struct UserData {
     id:i16
 }
 
-
+#[derive(MultipartForm)]
+struct Form {
+    file_set: Option<Tempfile>,
+}
 
 fn next_filename() -> Option<PathBuf> {
     let mut p = PathBuf::new();
@@ -34,12 +39,14 @@ async fn hello() -> impl Responder {
 }
 
 #[post("/trance")]
-async fn trance_ex_to_js(req_excel: HttpRequest) -> web::Json<UserData> {
+async fn trance_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<UserData> {
 
-    // let mut excel:Xlsx<_> = req_excel;
-    //엑셀로 받아오면 됨 ㅇㅇ
-
-    println!("{:?}",req_excel);
+    let mut excel:Xlsx<_> = open_workbook(req_excel.file_set.as_ref().unwrap().file.path()).unwrap();
+    if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
+        for row in r.rows() {
+            println!("row={:?}, row[0]={:?}", row, row[0]);
+        }
+    }
     
     
     web::Json(UserData { id:1 })
