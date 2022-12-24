@@ -1,7 +1,8 @@
 
+use actix_cors::Cors;
 use actix_easy_multipart::MultipartForm;
 use actix_easy_multipart::tempfile::Tempfile;
-use actix_web::{get, post,web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, post,web, App, HttpResponse, HttpServer, Responder, http};
 use calamine::{Reader, Xlsx, open_workbook};
 use serde::Serialize;
 
@@ -62,7 +63,14 @@ async fn trance_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<Vec<UserDa
 async fn main() -> std::io::Result<()> {
     println!("Running at http://{}:{}",HOST.0,HOST.1);
     HttpServer::new(|| {
+        let cors = Cors::default()
+                  .allowed_origin("http://localhost")
+                  .allowed_methods(vec!["GET", "POST"])
+                  .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+                  .allowed_header(http::header::CONTENT_TYPE)
+                  .max_age(3600);
         App::new()
+            .wrap(cors)
             .service(status)
             .service(trance_ex_to_js)
     })
