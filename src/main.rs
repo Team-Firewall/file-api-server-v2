@@ -64,9 +64,10 @@ async fn main() -> std::io::Result<()> {
     println!("Running at http://{}:{}",HOST.0,HOST.1);
     HttpServer::new(|| App::new()
         .wrap( Cors::default()
-            .allow_any_origin()
-            .allow_any_method()
-            .allow_any_header()
+            .allowed_origin("localhost:3000")
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+            .allowed_header(http::header::CONTENT_TYPE)
             .max_age(3600))
         
         .service(status)
