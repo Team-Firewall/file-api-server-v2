@@ -62,17 +62,16 @@ async fn trance_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<Vec<UserDa
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Running at http://{}:{}",HOST.0,HOST.1);
-    HttpServer::new(|| {
-        let cors = Cors::default()
+    HttpServer::new(|| App::new()
+        .wrap( Cors::default()
             .allow_any_origin()
             .allow_any_method()
             .allow_any_header()
-            .max_age(36000);
-        App::new()
-            .wrap(cors)
-            .service(status)
-            .service(trance_ex_to_js)
-    })
+            .max_age(3600))
+        
+        .service(status)
+        .service(trance_ex_to_js)
+    )
     .bind(HOST)?
     .run()
     .await
