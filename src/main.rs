@@ -63,7 +63,11 @@ async fn trance_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<Vec<UserDa
 async fn main() -> std::io::Result<()> {
     println!("Running at http://{}:{}",HOST.0,HOST.1);
     HttpServer::new(|| {
-        let cors = Cors::permissive();
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header()
+            .max_age(36000);
         App::new()
             .wrap(cors)
             .service(status)
