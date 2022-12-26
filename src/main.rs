@@ -23,6 +23,14 @@ struct UserData {
     password:String
 }
 
+#[derive(Serialize)]
+struct Regulation {
+    checked:String,
+    division:String,
+    regulate:String,
+    score:Option<i32>
+}
+
 #[derive(MultipartForm)]
 struct Form {
     file_set: Option<Tempfile>,
@@ -30,11 +38,15 @@ struct Form {
 
 #[get("/")]
 async fn status() -> impl Responder {
-    HttpResponse::Ok().body("200")
+    HttpResponse::Ok().body("
+        api 목록\n
+        /trance-student [POST]\n
+        /trance-regulate [POST]
+    ")
 }
 
-#[post("/trance")]
-async fn trance_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<Vec<UserData>> {
+#[post("/trance-student")]
+async fn trance_student_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<Vec<UserData>> {
 
     let mut excel:Xlsx<_> = open_workbook(req_excel.file_set.as_ref().unwrap().file.path()).unwrap();
     let mut result:Vec<UserData> = Vec::new();
@@ -59,6 +71,26 @@ async fn trance_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<Vec<UserDa
     web::Json(result)
 }
 
+#[post("/trance-regulate")]
+async fn trance_regulate_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<Vec<Regulation>> {
+
+    let mut excel:Xlsx<_> = open_workbook(req_excel.file_set.as_ref().unwrap().file.path()).unwrap();
+    let mut result:Vec<Regulation> = Vec::new();
+    if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
+        for row in r.rows() {
+            // println!("row={:?}", row);
+            result.push(Regulation {
+                checked:row[0].to_string(),
+                division:row[1].to_string(),
+                regulate:row[2].to_string(),
+                score:Some(row[3].get_float().unwrap() as i32)
+            });
+        }
+    }
+    
+    web::Json(result)
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Running at http://{}:{}",HOST.0,HOST.1);
@@ -71,7 +103,8 @@ async fn main() -> std::io::Result<()> {
             .max_age(3600))
         
         .service(status)
-        .service(trance_ex_to_js)
+        .service(trance_student_ex_to_js)
+        .service(trance_regulate_ex_to_js)
     )
     .bind(HOST)?
     .run()
