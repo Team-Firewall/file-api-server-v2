@@ -75,7 +75,6 @@ async fn trance_regulate_ex_to_js(req_excel: MultipartForm<Form>) -> web::Json<V
     let mut result:Vec<Regulation> = Vec::new();
     if let Some(Ok(r)) = excel.worksheet_range("Sheet1") {
         for row in r.rows() {
-            // println!("row={:?}", row);
             result.push(Regulation {
                 checked:row[0].to_string(),
                 division:row[1].to_string(),
@@ -93,7 +92,7 @@ async fn main() -> std::io::Result<()> {
     println!("Running at http://{}:{}",HOST.0,HOST.1);
     HttpServer::new(|| App::new()
         .wrap( Cors::default()
-            .allowed_origin("localhost:3000")
+            .allowed_origin("http://localhost:3000")
             .allowed_methods(vec!["GET", "POST"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
             .allowed_header(http::header::CONTENT_TYPE)
